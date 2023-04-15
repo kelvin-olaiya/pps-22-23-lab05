@@ -65,9 +65,9 @@ enum List[A]:
       case _ => Nil[(A, Int)]()
     zip(this, 0)
 
-  def zipRight: List[(A, Int)] = foldRight(Nil())((e, s) => (e, s match
+  def zipRight: List[(A, Int)] = foldRight(Nil())((elem, acc) => (elem, acc match
     case Nil() => length - 1
-    case (_, i) :: _ => i - 1) :: s
+    case (_, i) :: _ => i - 1) :: acc
   )
 
   def foldLeftRight[B, C](z: B)(s: C)(left: (A, B) => B)(right: (C, B) => C): C = this match
@@ -79,19 +79,19 @@ enum List[A]:
     case _ => s
 
   def zipRight2: List[(A, Int)] = head.map(h =>
-    foldLeftRight((h, -1))(Nil[(A, Int)]())((a, b) => (a, b._2 + 1))((a, b) => b :: a)
+    foldLeftRight((h, -1))(Nil[(A, Int)]())((elem, prev) => (elem, prev._2 + 1))((acc, elem) => elem :: acc)
   ).getOrElse(Nil())
 
-  def zipRight3: List[(A, Int)] = mapFoldLeftRight(0)(Nil[(A, Int)]())((_, _))(_ + 1)((s, e) => e :: s)
+  def zipRight3: List[(A, Int)] = mapFoldLeftRight(0)(Nil[(A, Int)]())((_, _))(_ + 1)((acc, elem) => elem :: acc)
 
-  def partition(pred: A => Boolean): (List[A], List[A]) = foldRight((Nil(), Nil()))((e, s) => s match
-    case (m, other) if pred(e) => (e :: m, other)
-    case (m, other) => (m, e :: other)
+  def partition(pred: A => Boolean): (List[A], List[A]) = foldRight((Nil(), Nil()))((elem, acc) => acc match
+    case (matching, other) if pred(elem) => (elem :: matching, other)
+    case (matching, other) => (matching, elem :: other)
   )
 
-  def span(pred: A => Boolean): (List[A], List[A]) = foldLeft((Nil(), Nil())) ((s, elem) => s match
-    case (m, Nil()) if pred(elem) => (m.append(elem :: Nil()), Nil())
-    case (m, other) => (m, other.append(elem :: Nil()))
+  def span(pred: A => Boolean): (List[A], List[A]) = foldLeft((Nil(), Nil())) ((acc, elem) => acc match
+    case (matching, Nil()) if pred(elem) => (matching.append(elem :: Nil()), Nil())
+    case (matching, other) => (matching, other.append(elem :: Nil()))
   )
 
   /** @throws UnsupportedOperationException if the list is empty */
