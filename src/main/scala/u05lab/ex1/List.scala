@@ -101,6 +101,8 @@ enum List[A]:
 
   def takeRight(n: Int): List[A] = zipRight filter (_._2 >= length - n) map (_._1)
 
+  def collect[B](pf: PartialFunction[A, B]): List[B] = filter(pf.isDefinedAt) map pf
+
 // Factories
 object List:
 

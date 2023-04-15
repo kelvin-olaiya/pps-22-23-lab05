@@ -52,3 +52,8 @@ class ListTest:
   def testReduce(): Unit =
     assertEquals(10, list1.reduce(_ + _))
     assertThrows(classOf[UnsupportedOperationException], () => Nil[Int]().reduce(_ + _))
+
+  @Test
+  def testCollect(): Unit =
+    val list = "Chair" :: "Window" :: "Carpenter" :: "Lamp" :: Nil()
+    assertEquals(10 :: 8 :: Nil(), list collect { case s if s.length <= 5 => s.length * 2})
