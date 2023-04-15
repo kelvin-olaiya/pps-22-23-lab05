@@ -59,16 +59,47 @@ enum List[A]:
   def reverse(): List[A] = foldLeft[List[A]](Nil())((l, e) => e :: l)
 
   /** EXERCISES */
-  def zipRight: List[(A, Int)] = ???
+  def recursiveZipRight: List[(A, Int)] =
+    def zip(l: List[A], idx: Int): List[(A, Int)] = l match
+      case h :: t => (h, idx) :: zip(t, idx + 1)
+      case _ => Nil[(A, Int)]()
+    zip(this, 0)
 
-  def partition(pred: A => Boolean): (List[A], List[A]) = ???
+  def zipRight: List[(A, Int)] = foldRight(Nil())((e, s) => (e, s match
+    case Nil() => length - 1
+    case (_, i) :: _ => i - 1) :: s
+  )
 
-  def span(pred: A => Boolean): (List[A], List[A]) = ???
+  def foldLeftRight[B, C](z: B)(s: C)(left: (A, B) => B)(right: (C, B) => C): C = this match
+    case h :: t => val r = left(h, z); right(t.foldLeftRight(r)(s)(left)(right), r)
+    case _ => s
+
+  def mapFoldLeftRight[B, C, D](z: B)(s: D)(map: (A, B) => C)(left: B => B)(right: (D, C) => D): D = this match
+    case h :: t => right(t.mapFoldLeftRight(left(z))(s)(map)(left)(right), map(h, z))
+    case _ => s
+
+  def zipRight2: List[(A, Int)] = head.map(h =>
+    foldLeftRight((h, -1))(Nil[(A, Int)]())((a, b) => (a, b._2 + 1))((a, b) => b :: a)
+  ).getOrElse(Nil())
+
+  def zipRight3: List[(A, Int)] = mapFoldLeftRight(0)(Nil[(A, Int)]())((_, _))(_ + 1)((s, e) => e :: s)
+
+  def partition(pred: A => Boolean): (List[A], List[A]) = foldRight((Nil(), Nil()))((e, s) => s match
+    case (m, other) if pred(e) => (e :: m, other)
+    case (m, other) => (m, e :: other)
+  )
+
+  def span(pred: A => Boolean): (List[A], List[A]) = foldLeft((Nil(), Nil())) ((s, elem) => s match
+    case (m, Nil()) if pred(elem) => (m.append(elem :: Nil()), Nil())
+    case (m, other) => (m, other.append(elem :: Nil()))
+  )
 
   /** @throws UnsupportedOperationException if the list is empty */
-  def reduce(op: (A, A) => A): A = ???
+  def reduce(op: (A, A) => A): A = this match
+    case Nil() => throw UnsupportedOperationException()
+    case h :: t => t.foldLeft(h)(op)
 
-  def takeRight(n: Int): List[A] = ???
+  def takeRight(n: Int): List[A] = zipRight filter (_._2 >= length - n) map (_._1)
 
 // Factories
 object List:
@@ -80,15 +111,3 @@ object List:
 
   def of[A](elem: A, n: Int): List[A] =
     if n == 0 then Nil() else elem :: of(elem, n - 1)
-
-@main def checkBehaviour(): Unit =
-  val reference = List(1, 2, 3, 4)
-  println(reference.zipRight) // List((1, 0), (2, 1), (3, 2), (4, 3))
-  println(reference.partition(_ % 2 == 0)) // (List(2, 4), List(1, 3))
-  println(reference.span(_ % 2 != 0)) // (List(1), List(2, 3, 4))
-  println(reference.span(_ < 3)) // (List(1, 2), List(3, 4))
-  println(reference.reduce(_ + _)) // 10
-  try Nil.reduce[Int](_ + _)
-  catch case ex: Exception => println(ex) // prints exception
-  println(List(10).reduce(_ + _)) // 10
-  println(reference.takeRight(3)) // List(2, 3, 4)
