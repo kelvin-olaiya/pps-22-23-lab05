@@ -17,6 +17,7 @@ object ConferenceReviewing:
     case SIGNIFICANCE
     case CONFIDENCE
     case FINAL
+
   def apply(): ConferenceReviewing = ConferenceReviewingImpl()
 
   private class ConferenceReviewingImpl() extends ConferenceReviewing:
