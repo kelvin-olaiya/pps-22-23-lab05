@@ -71,7 +71,9 @@ enum List[A]:
   )
 
   def foldLeftRight[B, C](z: B)(s: C)(left: (A, B) => B)(right: (C, B) => C): C = this match
-    case h :: t => val r = left(h, z); right(t.foldLeftRight(r)(s)(left)(right), r)
+    case h :: t =>
+      val r = left(h, z)
+      right(t.foldLeftRight(r)(s)(left)(right), r)
     case _ => s
 
   def mapFoldLeftRight[B, C, D](z: B)(s: D)(map: (A, B) => C)(left: B => B)(right: (D, C) => D): D = this match
