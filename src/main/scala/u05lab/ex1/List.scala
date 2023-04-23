@@ -103,6 +103,11 @@ enum List[A]:
 
   def takeRight(n: Int): List[A] = zipRight filter (_._2 >= length - n) map (_._1)
 
+  def takeRight2(n: Int): List[A] = foldRight((0, Nil[A]()))((elem, acc) => acc match
+    case (count, l) if count < n => (count + 1, elem :: l)
+    case p => p
+  )._2
+
   def collect[B](pf: PartialFunction[A, B]): List[B] = filter(pf.isDefinedAt) map pf
 
 // Factories

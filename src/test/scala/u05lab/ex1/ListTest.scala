@@ -46,7 +46,9 @@ class ListTest:
 
   @Test
   def testTakeRight(): Unit =
-    assertEquals(3 :: 4 :: Nil(), list1.takeRight(2))
+    val expected = 3 :: 4 :: Nil()
+    assertEquals(expected, list1.takeRight(2))
+    assertEquals(expected, list1.takeRight2(2))
 
   @Test
   def testReduce(): Unit =
