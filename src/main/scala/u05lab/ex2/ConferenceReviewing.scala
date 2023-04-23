@@ -41,19 +41,27 @@ object ConferenceReviewing:
       scores(article, Question.FINAL).sum / countReviews(article).toDouble
 
     private def scores(article: Int, question: Question): List[Int] =
-      reviews.collect({ case (a, m) if a == article => m(question) })
+      reviews.collect({ case (article, scores) if article == article => scores(question) })
 
     private def countReviews(article: Int) = reviews.count(_._1 == article)
 
     override def acceptedArticles: Set[Int] = reviews.map(_._1).filter(isAccepted).toSet
 
-    private def isAccepted(article: Int) =
-      averageFinalScore(article) > 5 && reviews.exists((a, m) => a == article && m(Question.SIGNIFICANCE) >= 8)
+    private def isAccepted(article: Int) = {
+      val acceptanceMinimumAverageScore = 5
+      val acceptanceArticleSignificanceScore = 8
+      averageFinalScore(article) > acceptanceMinimumAverageScore
+        && reviews.exists((article, scores) =>
+        article == article && scores(Question.SIGNIFICANCE) >= acceptanceArticleSignificanceScore
+      )
+    }
 
     override def sortedAcceptedArticles: List[(Int, Double)] =
-      acceptedArticles.map(a => (a, averageFinalScore(a))).toList.sortBy(_._2)
+      acceptedArticles.map(article => (article, averageFinalScore(article))).toList.sortBy(_._2)
 
     override def averageWeightedFinalScoreMap: Map[Int, Double] =
-      reviews.groupMapReduce(_._1)(r =>
-        r._2(Question.CONFIDENCE) * r._2(Question.FINAL) / (10.0 * countReviews(r._1))
+      reviews.groupMapReduce(_._1)(review => {
+        val maximumScore = 10.0
+        review._2(Question.CONFIDENCE) * review._2(Question.FINAL) / (maximumScore * countReviews(review._1))
+      }
       )(_ + _)
