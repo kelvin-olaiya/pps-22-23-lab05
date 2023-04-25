@@ -86,14 +86,12 @@ enum List[A]:
 
   def zipRight3: List[(A, Int)] = mapFoldLeftRight(0)(Nil[(A, Int)]())((_, _))(_ + 1)((acc, elem) => elem :: acc)
 
-  def partition(pred: A => Boolean): (List[A], List[A]) = foldRight((Nil(), Nil()))((elem, acc) => acc match
-    case (matching, other) if pred(elem) => (elem :: matching, other)
-    case (matching, other) => (matching, elem :: other)
+  def partition(pred: A => Boolean): (List[A], List[A]) = foldRight((Nil(), Nil()))((elem, acc) =>
+    if pred(elem) then (elem :: acc._1, acc._2) else (acc._1, elem :: acc._2)
   )
 
-  def span(pred: A => Boolean): (List[A], List[A]) = foldLeft((Nil(), Nil())) ((acc, elem) => acc match
-    case (matching, Nil()) if pred(elem) => (matching.append(elem :: Nil()), Nil())
-    case (matching, other) => (matching, other.append(elem :: Nil()))
+  def span(pred: A => Boolean): (List[A], List[A]) = foldLeft((Nil(), Nil())) ((acc, elem) =>
+    if pred(elem) && acc._2.isEmpty then (acc._1.append(elem :: Nil()), Nil()) else (acc._1, acc._2.append(elem :: Nil()))
   )
 
   /** @throws UnsupportedOperationException if the list is empty */
@@ -103,9 +101,8 @@ enum List[A]:
 
   def takeRight(n: Int): List[A] = zipRight filter (_._2 >= length - n) map (_._1)
 
-  def takeRight2(n: Int): List[A] = foldRight((0, Nil[A]()))((elem, acc) => acc match
-    case (count, l) if count < n => (count + 1, elem :: l)
-    case p => p
+  def takeRight2(n: Int): List[A] = foldRight((0, Nil[A]()))((elem, acc) =>
+    if acc._1 < n then (acc._1 + 1, elem :: acc._2) else acc
   )._2
 
   def collect[B](pf: PartialFunction[A, B]): List[B] = filter(pf.isDefinedAt) map pf
